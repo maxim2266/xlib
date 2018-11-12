@@ -126,7 +126,6 @@ func testPanic(dir string) (err error) {
 
 	err = WriteFile(fname, func(_ io.Writer) error {
 		panic(myPanic(123))
-		return nil
 	})
 
 	return
