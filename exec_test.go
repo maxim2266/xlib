@@ -33,6 +33,7 @@ package xlib
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os/exec"
 	"sort"
 	"testing"
@@ -171,6 +172,39 @@ func TestErrors(t *testing.T) {
 
 		if msg := c.check(ret, err, buff); len(msg) > 0 {
 			t.Errorf("(%d) %s", i, msg)
+			return
+		}
+	}
+}
+
+func TestBreak(t *testing.T) {
+	var count int
+	var res []string
+
+	ret, err := ScanCommandOutput(exec.Command("sh", "-c", `echo "AAA" ; echo "BBB" ; echo "CCC"`), nil, func(s []byte) error {
+		if count++; count > 2 {
+			return io.EOF
+		}
+
+		res = append(res, string(s))
+		return nil
+	})
+
+	switch {
+	case err != nil:
+		t.Errorf("Unexpected error: [%d] %s", ret, err)
+		return
+	case ret != 0:
+		t.Errorf("Unexpected return code %d without an error", ret)
+		return
+	case len(res) != 2:
+		t.Errorf("Unexpected number of lines: %d instead of 3", len(res))
+		return
+	}
+
+	for i, s := range []string{"AAA", "BBB"} {
+		if s != res[i] {
+			t.Errorf("(%d) unexpected string: %q instead of %q", i, res[i], s)
 			return
 		}
 	}
