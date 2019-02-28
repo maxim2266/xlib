@@ -96,8 +96,10 @@ scanner:
 		cmd.Wait()
 	} else if err = cmd.Wait(); err != nil {
 		// replace error message with stderr, if any
-		if s := bytes.TrimSpace(stderr.buff); len(s) > 0 {
-			err = errors.New(string(s))
+		if _, ok := err.(*exec.ExitError); ok {
+			if s := bytes.TrimSpace(stderr.buff); len(s) > 0 {
+				err = errors.New(string(s))
+			}
 		}
 	}
 
