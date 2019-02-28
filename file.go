@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2018, Maxim Konakov
+Copyright (c) 2018,2019 Maxim Konakov
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -41,7 +41,7 @@ import (
 // First, it creates a temporary file, then it calls the supplied function to actually write to the file,
 // and in the end it moves the temporary to the given target file. In case of any
 // error or panic the temporary file is always removed. No check is performed on the target pathname,
-// so it must either not exist, or refer to an existing regular file, in which case it will be overwritten.
+// so it must either not exist, or refer to an existing regular file, in which case it will be replaced.
 // To avoid copying files across different filesystems the temporary file is created in the same
 // directory as the target.
 func WriteFile(pathname string, fn func(io.Writer) error) (err error) {
