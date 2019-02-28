@@ -125,7 +125,7 @@ func TestEcho(t *testing.T) {
 			t.Errorf("(%d) Unexpected error: [%d] %s", i, ret, err)
 			return
 		case ret != 0:
-			t.Errorf("(%d) Unexpected return code %d without an error", i, ret)
+			t.Errorf("(%d) Unexpected exit code %d without an error", i, ret)
 			return
 		case len(buff) != len(c.exp):
 			t.Errorf("(%d) Unexpected number of lines: %d instead of %d", i, len(buff), len(c.exp))
@@ -195,7 +195,7 @@ func TestBreak(t *testing.T) {
 		t.Errorf("Unexpected error: [%d] %s", ret, err)
 		return
 	case ret != 0:
-		t.Errorf("Unexpected return code %d without an error", ret)
+		t.Errorf("Unexpected exit code %d without an error", ret)
 		return
 	case len(res) != 2:
 		t.Errorf("Unexpected number of lines: %d instead of 3", len(res))
@@ -219,7 +219,7 @@ func checkOutput(exp ...string) checkFunc {
 		case err != nil:
 			return fmt.Sprintf("Unexpected error message: %q", err)
 		case ret != 0:
-			return fmt.Sprintf("Unexpected return code %d without error", ret)
+			return fmt.Sprintf("Unexpected exit code %d without error", ret)
 		case len(out) != len(exp):
 			return fmt.Sprintf("Unexpected number of lines: %d instead of %d", len(out), len(exp))
 		}
