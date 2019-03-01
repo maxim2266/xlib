@@ -29,28 +29,10 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package xlib
 
 import (
-	"bytes"
-	"errors"
 	"strings"
 )
 
 // StrJoin makes the standard strings.Join() function more comfortable to use in some scenarios.
 func StrJoin(sep string, args ...string) string {
 	return strings.Join(args, sep)
-}
-
-// ScanNullTerminatedLines is a split function that splits input on null bytes. Useful
-// with bufio.Scanner.
-func ScanNullTerminatedLines(data []byte, atEOF bool) (advance int, token []byte, err error) {
-	if atEOF && len(data) == 0 {
-		return
-	}
-
-	if i := bytes.IndexByte(data, 0); i >= 0 {
-		advance, token = i+1, data[:i] // got the string
-	} else if atEOF {
-		err = errors.New("last string is not null-terminated")
-	}
-
-	return
 }
