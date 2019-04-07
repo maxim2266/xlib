@@ -28,50 +28,28 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package xlib
 
-import (
-	"strings"
-	"unsafe"
-)
+import "testing"
 
-// StrJoin makes the standard strings.Join() function more comfortable to use in some scenarios.
-func StrJoin(sep string, args ...string) string {
-	return strings.Join(args, sep)
-}
+func TestStrJoinEx(t *testing.T) {
+	sep := [3]string{": ", ", ", " and "}
 
-// StrJoinEx joins the given arguments using the supplied separators, for example,
-// given the separator list of [": ", ", ", " and "] and the arguments
-// ["AAA", "BBB", "CCC", "DDD"], the result is "AAA: BBB, CCC and DDD".
-func StrJoinEx(sep [3]string, args ...string) string {
-	// process short argument lists
-	switch len(args) {
-	case 0:
-		return ""
-	case 1:
-		return args[0]
-	case 2:
-		return args[0] + sep[0] + args[1]
-	case 3:
-		return args[0] + sep[0] + args[1] + sep[2] + args[2]
-	case 4:
-		return args[0] + sep[0] + args[1] + sep[1] + args[2] + sep[2] + args[3]
+	cases := []struct {
+		res  string
+		args []string
+	}{
+		{"", []string{""}},
+		{"AAA", []string{"AAA"}},
+		{"AAA: BBB", []string{"AAA", "BBB"}},
+		{"AAA: BBB and CCC", []string{"AAA", "BBB", "CCC"}},
+		{"AAA: BBB, CCC and DDD", []string{"AAA", "BBB", "CCC", "DDD"}},
+		{"AAA: BBB, CCC, DDD and EEE", []string{"AAA", "BBB", "CCC", "DDD", "EEE"}},
+		{"AAA: BBB, CCC, DDD, EEE and FFF", []string{"AAA", "BBB", "CCC", "DDD", "EEE", "FFF"}},
 	}
 
-	// total length
-	n := len(sep[0]) + len(sep[1])*(len(args)-2) + len(sep[2])
-
-	for _, s := range args {
-		n += len(s)
+	for i, c := range cases {
+		if r := StrJoinEx(sep, c.args...); r != c.res {
+			t.Errorf("Unexpected string in case %d: %q instead of %q", i, r, c.res)
+			return
+		}
 	}
-
-	// compose
-	buff := append(append(append(make([]byte, 0, n), args[0]...), sep[0]...), args[1]...)
-
-	for _, s := range args[2 : len(args)-1] {
-		buff = append(append(buff, sep[1]...), s...)
-	}
-
-	buff = append(append(buff, sep[2]...), args[len(args)-1]...)
-
-	// all done
-	return *(*string)(unsafe.Pointer(&buff))
 }
