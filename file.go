@@ -31,7 +31,6 @@ package xlib
 
 import (
 	"bufio"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -44,7 +43,7 @@ import (
 // so it must either not exist, or refer to an existing regular file, in which case it will be replaced.
 // To avoid copying files across different filesystems the temporary file is created in the same
 // directory as the target.
-func WriteFile(pathname string, fn func(io.Writer) error) (err error) {
+func WriteFile(pathname string, fn func(*bufio.Writer) error) (err error) {
 	// create temporary file
 	var fd *os.File
 
@@ -74,7 +73,7 @@ func WriteFile(pathname string, fn func(io.Writer) error) (err error) {
 	return
 }
 
-func writeFile(fd *os.File, fn func(io.Writer) error) (err error) {
+func writeFile(fd *os.File, fn func(*bufio.Writer) error) (err error) {
 	// make sure the file gets closed afterwards
 	defer func() {
 		if err == nil {

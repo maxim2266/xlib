@@ -29,10 +29,10 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package xlib
 
 import (
+	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -58,8 +58,8 @@ func TestFileWrite(t *testing.T) {
 func testSimpleWrite(dir string) error {
 	fname := filepath.Join(dir, "zzz")
 
-	err := WriteFile(fname, func(w io.Writer) error {
-		_, e := w.Write([]byte(fileContent))
+	err := WriteFile(fname, func(w *bufio.Writer) error {
+		_, e := w.WriteString(fileContent)
 		return e
 	})
 
@@ -124,7 +124,7 @@ func testPanic(dir string) (err error) {
 		err = assertNoFiles(dir)
 	}()
 
-	err = WriteFile(fname, func(_ io.Writer) error {
+	err = WriteFile(fname, func(_ *bufio.Writer) error {
 		panic(myPanic(123))
 	})
 
@@ -136,7 +136,7 @@ func testError(dir string) error {
 
 	fname := filepath.Join(dir, "zzz")
 
-	err := WriteFile(fname, func(_ io.Writer) error {
+	err := WriteFile(fname, func(_ *bufio.Writer) error {
 		return errors.New(errMsg)
 	})
 
