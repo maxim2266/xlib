@@ -29,13 +29,42 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package xlib
 
 import (
-	"strings"
 	"unsafe"
 )
 
-// StrJoin makes the standard strings.Join() function more comfortable to use in some scenarios.
+// StrJoin is similar to strings.Join(), but more comfortable to use in some scenarios.
 func StrJoin(sep string, args ...string) string {
-	return strings.Join(args, sep)
+	switch len(args) {
+	case 0:
+		return ""
+	case 1:
+		return args[0]
+	}
+
+	// total length
+	n := len(sep) * (len(args) - 1)
+
+	for _, s := range args {
+		n += len(s)
+	}
+
+	// compose
+	b := make([]byte, 0, n)
+
+	if len(sep) == 0 {
+		for _, s := range args {
+			b = append(b, s...)
+		}
+	} else {
+		b = append(b, args[0]...)
+
+		for _, s := range args[1:] {
+			b = append(append(b, sep...), s...)
+		}
+	}
+
+	// all done
+	return *(*string)(unsafe.Pointer(&b))
 }
 
 // StrJoinEx joins the given arguments using the supplied separators, for example,
