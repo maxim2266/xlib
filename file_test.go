@@ -48,7 +48,7 @@ func TestFileWrite(t *testing.T) {
 	}
 
 	for i, test := range tests {
-		if err := inTempDir(test); err != nil {
+		if err := run(test); err != nil {
 			t.Error(i, err)
 			return
 		}
@@ -151,7 +151,7 @@ func testError(dir string) error {
 	return assertNoFiles(dir)
 }
 
-func inTempDir(fn func(string) error) error {
+func run(fn func(string) error) error {
 	dir, err := ioutil.TempDir(os.TempDir(), "xlib-")
 
 	if err != nil {
