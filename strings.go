@@ -68,8 +68,8 @@ func StrJoin(sep string, args ...string) string {
 }
 
 // StrJoinEx joins the given arguments using the supplied separators, for example,
-// given the separator list of [": ", ", ", " and "] and the arguments
-// ["AAA", "BBB", "CCC", "DDD"], the result is "AAA: BBB, CCC and DDD".
+// given the separator list of [": ", ", ", ", and "] and the arguments
+// ["AAA", "BBB", "CCC", "DDD"], the resulting string will be "AAA: BBB, CCC, and DDD".
 func StrJoinEx(sep [3]string, args ...string) string {
 	// process short argument lists
 	switch len(args) {
