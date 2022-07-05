@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2018,2019 Maxim Konakov
+Copyright (c) 2018,2019,2022 Maxim Konakov
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -31,23 +31,41 @@ package xlib
 
 import (
 	"bufio"
-	"io/ioutil"
+	"errors"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 // WriteFile safely replaces the content of the given file.
 // First, it creates a temporary file, then it calls the supplied function to actually write to the file,
-// and in the end it moves the temporary to the given target file. In case of any
-// error or panic the temporary file is always removed. No check is performed on the target pathname,
-// so it must either not exist, or refer to an existing regular file, in which case it will be replaced.
-// To avoid copying files across different filesystems the temporary file is created in the same
-// directory as the target.
+// and in the end it moves the temporary to the given target file. In case of any error or a panic the
+// temporary file is always removed. The target pathname must either not exist, or refer to an existing
+// regular file, in which case it will be replaced. To avoid copying files across different filesystems
+// the temporary file is created in the same directory as the target.
 func WriteFile(pathname string, fn func(*bufio.Writer) error) (err error) {
+	// check target and copy permission bits
+	perm := fs.FileMode(0600)
+
+	var info fs.FileInfo
+
+	if info, err = os.Lstat(pathname); err == nil {
+		if !info.Mode().IsRegular() {
+			return errors.New(strconv.Quote(pathname) + " is not a regular file")
+		}
+
+		if perm = info.Mode().Perm(); perm&0200 == 0 {
+			return errors.New(strconv.Quote(pathname) + " is not writable")
+		}
+	} else if !errors.Is(err, fs.ErrNotExist) {
+		return
+	}
+
 	// create temporary file
 	var fd *os.File
 
-	if fd, err = ioutil.TempFile(filepath.Dir(pathname), "tmp-"); err != nil {
+	if fd, err = os.CreateTemp(filepath.Dir(pathname), "tmp-"); err != nil {
 		return
 	}
 
@@ -64,6 +82,11 @@ func WriteFile(pathname string, fn func(*bufio.Writer) error) (err error) {
 			os.Remove(temp)
 		}
 	}()
+
+	// copy permission bits
+	if err = fd.Chmod(perm); err != nil {
+		return
+	}
 
 	// write and move file
 	if err = writeFile(fd, fn); err == nil {
