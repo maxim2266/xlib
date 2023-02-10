@@ -30,25 +30,46 @@ package xlib
 
 import "testing"
 
-func TestStrJoinEx(t *testing.T) {
-	sep := [3]string{": ", ", ", " and "}
+func TestStrJoin(t *testing.T) {
+	cases := [...]struct {
+		res  string
+		args []string
+	}{
+		{"", nil},
+		{"AAA", []string{"AAA"}},
+		{"AAA, BBB", []string{"AAA", "BBB"}},
+		{"AAA, BBB, CCC", []string{"AAA", "BBB", "CCC"}},
+		{"AAA, BBB, CCC, DDD", []string{"AAA", "BBB", "CCC", "DDD"}},
+		{"AAA, BBB, CCC, DDD, EEE", []string{"AAA", "BBB", "CCC", "DDD", "EEE"}},
+	}
 
-	cases := []struct {
+	for i, c := range cases {
+		if r := StrJoin(", ", c.args...); r != c.res {
+			t.Errorf("[%d] unexpected result: %q instead of %q", i, r, c.res)
+			return
+		}
+	}
+}
+
+func TestStrJoinEx(t *testing.T) {
+	sep := [3]string{": ", ", ", ", and "}
+
+	cases := [...]struct {
 		res  string
 		args []string
 	}{
 		{"", []string{""}},
 		{"AAA", []string{"AAA"}},
 		{"AAA: BBB", []string{"AAA", "BBB"}},
-		{"AAA: BBB and CCC", []string{"AAA", "BBB", "CCC"}},
-		{"AAA: BBB, CCC and DDD", []string{"AAA", "BBB", "CCC", "DDD"}},
-		{"AAA: BBB, CCC, DDD and EEE", []string{"AAA", "BBB", "CCC", "DDD", "EEE"}},
-		{"AAA: BBB, CCC, DDD, EEE and FFF", []string{"AAA", "BBB", "CCC", "DDD", "EEE", "FFF"}},
+		{"AAA: BBB, and CCC", []string{"AAA", "BBB", "CCC"}},
+		{"AAA: BBB, CCC, and DDD", []string{"AAA", "BBB", "CCC", "DDD"}},
+		{"AAA: BBB, CCC, DDD, and EEE", []string{"AAA", "BBB", "CCC", "DDD", "EEE"}},
+		{"AAA: BBB, CCC, DDD, EEE, and FFF", []string{"AAA", "BBB", "CCC", "DDD", "EEE", "FFF"}},
 	}
 
 	for i, c := range cases {
 		if r := StrJoinEx(sep, c.args...); r != c.res {
-			t.Errorf("Unexpected string in case %d: %q instead of %q", i, r, c.res)
+			t.Errorf("[%d] unexpected result: %q instead of %q", i, r, c.res)
 			return
 		}
 	}
