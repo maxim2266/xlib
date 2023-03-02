@@ -38,12 +38,14 @@ import (
 	"strconv"
 )
 
-// WriteFile safely replaces the content of the given file.
-// First, it creates a temporary file, then it calls the supplied function to actually write to the file,
-// and in the end it moves the temporary to the given target file. In case of any error or a panic the
-// temporary file is always removed. The target pathname must either not exist, or refer to an existing
-// regular file, in which case it will be replaced. To avoid copying files across different filesystems
-// the temporary file is created in the same directory as the target.
+/*
+WriteFile safely replaces the content of the given file.  First, it creates a temporary file,
+then it calls the supplied function to actually write to the file, and in the end it moves
+the temporary to the given target file. In case of any error or a panic the temporary file
+is always removed. The target pathname must either not exist, or refer to an existing regular
+file, in which case it will be replaced. To avoid copying files across different filesystems
+the temporary file is created in the same directory as the target.
+*/
 func WriteFile(pathname string, fn func(*bufio.Writer) error) (err error) {
 	// check target and copy permission bits
 	perm := fs.FileMode(0600)
