@@ -38,8 +38,8 @@ processed in another. In case of an error in either source or destination the pr
 at the first error encountered and the error gets returned to the caller. Error io.EOF from
 the source is treated as a signal to stop the iteration and returned as `nil`. Since `dest`
 function is invoked from a different goroutine any data shared between `src` and `dest` should
-be protected by a mutex. Upon return from Pump function it is guaranteed, that the processing
-goroutine has fully completed its job.
+be protected by a mutex. Upon return from Pump it is guaranteed, that the processing goroutine
+has fully completed its job.
 */
 func Pump[T any](src func() (T, error), dest func(T) error) (err error) {
 	// error channel
@@ -56,27 +56,12 @@ func Pump[T any](src func() (T, error), dest func(T) error) (err error) {
 }
 
 func pump[T any](src func() (T, error), dest func(T) error, errch chan error) (err error) {
-	// work queue
-	queue := make(chan T, 20)
+	// start `dest` pump and get the write end of the work queue
+	queue := startPump(dest, errch)
 
-	// processor below closes `errch` upon exit, and here we close `queue` upon exit from
-	// this function, so we guarantee that the `Pump` function above will eventually complete
-	// its wait on `errch` in all situations
 	defer close(queue)
 
-	// processor
-	go func() {
-		defer close(errch)
-
-		for item := range queue {
-			if err := dest(item); err != nil {
-				errch <- err
-				break
-			}
-		}
-	}()
-
-	// the pump
+	// feed the pump
 	var item T
 
 	for item, err = src(); err == nil; item, err = src() {
@@ -94,4 +79,23 @@ func pump[T any](src func() (T, error), dest func(T) error, errch chan error) (e
 	}
 
 	return
+}
+
+func startPump[T any](dest func(T) error, errch chan<- error) chan<- T {
+	// work queue
+	queue := make(chan T, 20)
+
+	// processor
+	go func() {
+		defer close(errch)
+
+		for item := range queue {
+			if err := dest(item); err != nil {
+				errch <- err
+				break
+			}
+		}
+	}()
+
+	return queue
 }
