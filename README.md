@@ -5,5 +5,5 @@
 [![License: BSD 3-Clause](https://img.shields.io/badge/License-BSD_3--Clause-yellow.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
 #### Project status
-Tested on Linux Mint 20.3 using Go version 1.18.3.
+Tested on Linux Mint 21.1, requires Go version 1.19 or higher.
 
