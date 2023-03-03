@@ -60,7 +60,7 @@ func pump[T any](src func() (T, error), dest func(T) error, errch chan error) (e
 	queue := make(chan T, 20)
 
 	// processor below closes `errch` upon exit, and here we close `queue` upon exit from
-	// this funtion, so we guarantee that the `Pump` function above will eventually complete
+	// this function, so we guarantee that the `Pump` function above will eventually complete
 	// its wait on `errch` in all situations
 	defer close(queue)
 
