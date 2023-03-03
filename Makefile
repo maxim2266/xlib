@@ -1,5 +1,5 @@
-FILES := file.go strings.go
-TEST_FILES := file_test.go strings_test.go
+FILES := file.go strings.go pump.go
+TEST_FILES := file_test.go strings_test.go pump_test.go
 
 TEST := test-result
 
@@ -7,7 +7,6 @@ test: $(TEST)
 
 $(TEST): $(FILES) $(TEST_FILES)
 	goimports -w $?
-	golint $?
 	go test | tee $@
 
 clean:
