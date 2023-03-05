@@ -41,24 +41,20 @@ function is invoked from a different goroutine any data shared between `src` and
 be protected by a mutex. Upon return from Pump it is guaranteed, that the processing goroutine
 has fully completed its job.
 */
-func Pump[T any](src func() (T, error), dest func(T) error) (err error) {
+func Pump[T any](src func() (T, error), dest func(T) error) error {
 	// error channel
 	errch := make(chan error, 1)
 
 	// pump
-	if err = pump(src, dest, errch); err == nil {
-		err = <-errch
-	} else {
+	if err := feedPump(src, startPump(dest, errch), errch); err != nil {
 		<-errch
+		return err
 	}
 
-	return
+	return <-errch
 }
 
-func pump[T any](src func() (T, error), dest func(T) error, errch chan error) (err error) {
-	// start `dest` pump and get the write end of the work queue
-	queue := startPump(dest, errch)
-
+func feedPump[T any](src func() (T, error), queue chan<- T, errch <-chan error) (err error) {
 	defer close(queue)
 
 	// feed the pump
