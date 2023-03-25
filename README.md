@@ -1,6 +1,6 @@
-# Ever growing collection of useful functions.
+# Ever growing collection of useful Go functions.
 
-[![GoDoc](https://godoc.org/github.com/maxim2266/mvr?status.svg)](https://godoc.org/github.com/maxim2266/xlib)
+[![GoDoc](https://godoc.org/github.com/maxim2266/xlib?status.svg)](https://godoc.org/github.com/maxim2266/xlib)
 [![Go Report Card](https://goreportcard.com/badge/github.com/maxim2266/xlib)](https://goreportcard.com/report/github.com/maxim2266/xlib)
 [![License: BSD 3-Clause](https://img.shields.io/badge/License-BSD_3--Clause-yellow.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
