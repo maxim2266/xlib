@@ -28,70 +28,56 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package xlib
 
-import "io"
+import (
+	"context"
+	"errors"
+)
 
-/*
-Pump repeatedly calls `src` function to obtain items for processing until the function returns
-an error, and forwards each item to the `dest` function running in a separate goroutine.
-This forms a processing conveyor where the input data are retrieved in one goroutine and
-processed in another. In case of an error in either source or destination the processing stops
-at the first error encountered and the error gets returned to the caller. Error io.EOF from
-the source is treated as a signal to stop the iteration and returned as `nil`. Since `dest`
-function is invoked from a different goroutine any data shared between `src` and `dest` should
-be protected by a mutex. Upon return from Pump it is guaranteed, that the processing goroutine
-has fully completed its job.
-*/
-func Pump[T any](src func() (T, error), dest func(T) error) error {
-	// error channel
-	errch := make(chan error, 1)
+// Pump is a function that iterates or generates a sequence of items of type T, and
+// calls the given callback once per each item from the sequence. It is expected
+// to stop on the first error encountered either from the iteration itself, or returned
+// from the callback.
+type Pump[T any] func(func(T) error) error
 
-	// pump
-	if err := feedPump(src, startPump(dest, errch), errch); err != nil {
-		<-errch
-		return err
-	}
+// PipelinedPump creates a pipelined version of the given pump, where the pump itself
+// is running in a separate goroutine, while the calling goroutine only does the callback
+// invocations.
+func PipelinedPump[T any](pump Pump[T]) Pump[T] {
+	return func(fn func(T) error) (err error) {
+		queue := make(chan T, 20)
+		errch := make(chan error, 1)
+		ctx, cancel := context.WithCancel(context.Background())
 
-	return <-errch
-}
+		go func() {
+			defer func() {
+				close(queue)
+				close(errch)
+			}()
 
-func feedPump[T any](src func() (T, error), queue chan<- T, errch <-chan error) (err error) {
-	defer close(queue)
+			err := pump(func(item T) error {
+				select {
+				case queue <- item:
+					return nil
+				case <-ctx.Done():
+					return cancelledPumpError // just to stop the pump
+				}
+			})
 
-	// feed the pump
-	var item T
-
-	for item, err = src(); err == nil; item, err = src() {
-		select {
-		case queue <- item:
-			// ok
-		case err = <-errch:
-			return
-		}
-	}
-
-	// io.EOF from source means end of input
-	if err == io.EOF {
-		err = nil
-	}
-
-	return
-}
-
-func startPump[T any](dest func(T) error, errch chan<- error) chan<- T {
-	// work queue
-	queue := make(chan T, 20)
-
-	// processor
-	go func() {
-		defer close(errch)
+			if err != nil && ctx.Err() == nil {
+				errch <- err
+			}
+		}()
 
 		for item := range queue {
-			if err := dest(item); err != nil {
-				errch <- err
-				break
+			if err := fn(item); err != nil {
+				cancel()
+				<-errch // wait for the pump to stop
+				return err
 			}
 		}
-	}()
 
-	return queue
+		return <-errch
+	}
 }
+
+var cancelledPumpError = errors.New("pump cancelled")

@@ -29,18 +29,17 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package xlib
 
 import (
-	"errors"
 	"fmt"
-	"io"
 	"testing"
 )
 
-func TestPump(t *testing.T) {
-	const N = 1000_000
+func TestPipelinedPump(t *testing.T) {
+	const N = 1000000
 
+	pump := PipelinedPump(countingPump(N))
 	count := 0
 
-	err := Pump(makeCountingSource(N), func(i int) error {
+	err := pump(func(i int) error {
 		if i != count {
 			return fmt.Errorf("unexpected parameter: %d instead of %d", i, count)
 		}
@@ -60,12 +59,13 @@ func TestPump(t *testing.T) {
 	}
 }
 
-func TestPumpError(t *testing.T) {
+func TestPipelinedPumpError(t *testing.T) {
 	const N = 1000
 
+	pump := PipelinedPump(countingPump(N))
 	count := 0
 
-	err := Pump(makeCountingSource(N), func(i int) error {
+	err := pump(func(i int) error {
 		if count >= N/2 {
 			return fmt.Errorf("unexpected call with value %d", i)
 		}
@@ -86,7 +86,10 @@ func TestPumpError(t *testing.T) {
 		return
 	}
 
-	t.Log(err)
+	if err.Error() != fmt.Sprintf("expected error: reached value %d", N/2) {
+		t.Error("unexpected error message:", err)
+		return
+	}
 
 	if count != N/2 {
 		t.Errorf("unexpected final value: %d instead of %d", count, N)
@@ -94,14 +97,13 @@ func TestPumpError(t *testing.T) {
 	}
 }
 
-func TestPumpSourceError(t *testing.T) {
+func TestPipelinedPumpSourceError(t *testing.T) {
 	const N = 1000
 
-	src := makeCountingSourceErr(N, errors.New("expected error"))
-
+	pump := PipelinedPump(countingPumpErr(N))
 	count := 0
 
-	err := Pump(src, func(i int) error {
+	err := pump(func(i int) error {
 		if i != count {
 			return fmt.Errorf("unexpected parameter: %d instead of %d", i, count)
 		}
@@ -115,7 +117,10 @@ func TestPumpSourceError(t *testing.T) {
 		return
 	}
 
-	t.Log(err)
+	if err.Error() != fmt.Sprintf("source error: reached value %d", N) {
+		t.Error("unexpected error message:", err)
+		return
+	}
 
 	if count != N {
 		t.Errorf("unexpected final value: %d instead of %d", count, N)
@@ -123,21 +128,26 @@ func TestPumpSourceError(t *testing.T) {
 	}
 }
 
-func makeCountingSource(N int) func() (int, error) {
-	return makeCountingSourceErr(N, io.EOF)
-}
-
-func makeCountingSourceErr(N int, stop error) func() (int, error) {
-	counter := 0
-
-	return func() (int, error) {
-		if counter < N {
-			ret := counter
-
-			counter++
-			return ret, nil
+func countingPump(N int) Pump[int] {
+	return func(fn func(int) error) error {
+		for i := 0; i < N; i++ {
+			if err := fn(i); err != nil {
+				return err
+			}
 		}
 
-		return 0, stop
+		return nil
+	}
+}
+
+func countingPumpErr(N int) Pump[int] {
+	return func(fn func(int) error) error {
+		for i := 0; i < N; i++ {
+			if err := fn(i); err != nil {
+				return err
+			}
+		}
+
+		return fmt.Errorf("source error: reached value %d", N)
 	}
 }
