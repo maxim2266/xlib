@@ -33,7 +33,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -55,6 +54,19 @@ func TestFileWrite(t *testing.T) {
 	}
 }
 
+func TestFileWriteParallel(t *testing.T) {
+	errch := Parallel(
+		func() error { return run(testSimpleWrite) },
+		func() error { return run(testOverWrite) },
+		func() error { return run(testPanic) },
+		func() error { return run(testError) },
+	)
+
+	for err := range errch {
+		t.Error(err)
+	}
+}
+
 func testSimpleWrite(dir string) error {
 	fname := filepath.Join(dir, "zzz")
 
@@ -71,7 +83,7 @@ func testSimpleWrite(dir string) error {
 		return err
 	}
 
-	s, err := ioutil.ReadFile(fname)
+	s, err := os.ReadFile(fname)
 
 	if err != nil {
 		return err
@@ -87,7 +99,7 @@ func testSimpleWrite(dir string) error {
 func testOverWrite(dir string) error {
 	fname := filepath.Join(dir, "zzz")
 
-	if err := ioutil.WriteFile(fname, []byte("XXX"), 0666); err != nil {
+	if err := os.WriteFile(fname, []byte("XXX"), 0666); err != nil {
 		return err
 	}
 
@@ -152,7 +164,7 @@ func testError(dir string) error {
 }
 
 func run(fn func(string) error) error {
-	dir, err := ioutil.TempDir(os.TempDir(), "xlib-")
+	dir, err := os.MkdirTemp("", "xlib-")
 
 	if err != nil {
 		return err
@@ -164,7 +176,7 @@ func run(fn func(string) error) error {
 }
 
 func assertNoFiles(dir string) error {
-	files, err := ioutil.ReadDir(dir)
+	files, err := os.ReadDir(dir)
 
 	if err != nil {
 		return err
@@ -178,7 +190,7 @@ func assertNoFiles(dir string) error {
 }
 
 func assertOneFile(dir, fname string) error {
-	files, err := ioutil.ReadDir(dir)
+	files, err := os.ReadDir(dir)
 
 	if err != nil {
 		return err

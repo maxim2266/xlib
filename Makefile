@@ -1,4 +1,4 @@
-FILES := file.go strings.go
+FILES := file.go strings.go parallel.go
 TEST_FILES := file_test.go strings_test.go
 
 TEST := test-result
