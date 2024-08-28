@@ -101,10 +101,8 @@ func WriteFile(pathname string, fn func(*bufio.Writer) error) (err error) {
 func writeFile(fd *os.File, fn func(*bufio.Writer) error) (err error) {
 	// make sure the file gets closed afterwards
 	defer func() {
-		if err == nil {
-			err = fd.Close()
-		} else {
-			fd.Close()
+		if e := fd.Close(); e != nil && err == nil {
+			err = e
 		}
 	}()
 

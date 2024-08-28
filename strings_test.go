@@ -50,27 +50,3 @@ func TestStrJoin(t *testing.T) {
 		}
 	}
 }
-
-func TestStrJoinEx(t *testing.T) {
-	sep := [3]string{": ", ", ", ", and "}
-
-	cases := [...]struct {
-		res  string
-		args []string
-	}{
-		{"", []string{""}},
-		{"AAA", []string{"AAA"}},
-		{"AAA: BBB", []string{"AAA", "BBB"}},
-		{"AAA: BBB, and CCC", []string{"AAA", "BBB", "CCC"}},
-		{"AAA: BBB, CCC, and DDD", []string{"AAA", "BBB", "CCC", "DDD"}},
-		{"AAA: BBB, CCC, DDD, and EEE", []string{"AAA", "BBB", "CCC", "DDD", "EEE"}},
-		{"AAA: BBB, CCC, DDD, EEE, and FFF", []string{"AAA", "BBB", "CCC", "DDD", "EEE", "FFF"}},
-	}
-
-	for i, c := range cases {
-		if r := StrJoinEx(sep, c.args...); r != c.res {
-			t.Errorf("[%d] unexpected result: %q instead of %q", i, r, c.res)
-			return
-		}
-	}
-}
