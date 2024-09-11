@@ -28,7 +28,10 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 package xlib
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestStrJoin(t *testing.T) {
 	cases := [...]struct {
@@ -48,5 +51,29 @@ func TestStrJoin(t *testing.T) {
 			t.Errorf("[%d] unexpected result: %q instead of %q", i, r, c.res)
 			return
 		}
+	}
+}
+
+func TestWrites(t *testing.T) {
+	var buff strings.Builder
+
+	if err := WriteString(&buff, "Hello!"); err != nil {
+		t.Error(err)
+		return
+	}
+
+	if err := WriteByte(&buff, ' '); err != nil {
+		t.Error(err)
+		return
+	}
+
+	if err := WriteRune(&buff, '😀'); err != nil {
+		t.Error(err)
+		return
+	}
+
+	if s := buff.String(); s != "Hello! 😀" {
+		t.Errorf("unexpected string: %q instead of \"Hello! 😀\"", s)
+		return
 	}
 }

@@ -89,7 +89,7 @@ func testSimpleWrite(dir string) error {
 		return err
 	}
 
-	if bytes.Compare(s, []byte(fileContent)) != 0 {
+	if !bytes.Equal(s, []byte(fileContent)) {
 		return fmt.Errorf("Unexpected file content: %q", string(s))
 	}
 
