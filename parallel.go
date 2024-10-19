@@ -59,3 +59,10 @@ func Parallel(tasks ...func() error) <-chan error {
 
 	return errch
 }
+
+// Async starts the given function in a dedicated goroutine and returns
+// a channel where any error from the function will be posted. The channel is
+// closed when the function has completed.
+func Async(fn func() error) <-chan error {
+	return Parallel(fn)
+}
