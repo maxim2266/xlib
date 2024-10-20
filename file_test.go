@@ -54,8 +54,8 @@ func TestFileWrite(t *testing.T) {
 	}
 }
 
-func TestFileWriteParallel(t *testing.T) {
-	errch := Parallel(
+func TestFileWriteAsync(t *testing.T) {
+	errch := Async(
 		func() error { return run(testSimpleWrite) },
 		func() error { return run(testOverWrite) },
 		func() error { return run(testPanic) },

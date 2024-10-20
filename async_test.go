@@ -52,7 +52,7 @@ func TestAsyncErr(t *testing.T) {
 	}
 }
 
-func TestParallel(t *testing.T) {
+func TestAsyncN(t *testing.T) {
 	counter := int32(0)
 
 	fn := func() error {
@@ -61,7 +61,7 @@ func TestParallel(t *testing.T) {
 		return nil
 	}
 
-	errch := Parallel(fn, fn, fn)
+	errch := Async(fn, fn, fn)
 
 	if err := <-errch; err != nil {
 		t.Errorf("unexpected error: %s", err)

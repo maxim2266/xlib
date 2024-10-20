@@ -32,12 +32,12 @@ import (
 	"sync/atomic"
 )
 
-// Parallel starts the given functions each in a separate goroutine, and returns
+// Async starts each of the given functions in a separate goroutine, and returns
 // a channel where errors from the functions are posted. The channel is closed
 // when all goroutines have completed.
-func Parallel(tasks ...func() error) <-chan error {
+func Async(tasks ...func() error) <-chan error {
 	if len(tasks) == 0 {
-		panic("xlib.Parallel: no tasks to run")
+		panic("xlib.Async: no task to run")
 	}
 
 	errch := make(chan error, len(tasks))
@@ -58,11 +58,4 @@ func Parallel(tasks ...func() error) <-chan error {
 	}
 
 	return errch
-}
-
-// Async starts the given function in a dedicated goroutine and returns
-// a channel where any error from the function will be posted. The channel is
-// closed when the function has completed.
-func Async(fn func() error) <-chan error {
-	return Parallel(fn)
 }
