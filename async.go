@@ -29,6 +29,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 package xlib
 
 import (
+	"errors"
 	"sync/atomic"
 )
 
@@ -58,4 +59,23 @@ func Async(tasks ...func() error) <-chan error {
 	}
 
 	return errch
+}
+
+// Await takes the error channel returned from Async() function, and waits for all the tasks
+// to complete, collecting errors via errors.Join().
+func Await(errch <-chan error) error {
+	var errs []error
+
+	for err := range errch {
+		errs = append(errs, err)
+	}
+
+	switch len(errs) {
+	case 0:
+		return nil
+	case 1:
+		return errs[0]
+	default:
+		return errors.Join(errs...)
+	}
 }

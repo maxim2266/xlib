@@ -36,13 +36,8 @@ func TestAsyncErr(t *testing.T) {
 		return errors.New("just some error")
 	})
 
-	if err := <-errch; err == nil || err.Error() != "just some error" {
+	if err := Await(errch); err == nil || err.Error() != "just some error" {
 		t.Errorf("unexpected error: %q", err)
-		return
-	}
-
-	if err := <-errch; err != nil {
-		t.Errorf("unexpected error: %s", err)
 		return
 	}
 
@@ -61,10 +56,8 @@ func TestAsyncN(t *testing.T) {
 		return nil
 	}
 
-	errch := Async(fn, fn, fn)
-
-	if err := <-errch; err != nil {
-		t.Errorf("unexpected error: %s", err)
+	if err := Await(Async(fn, fn, fn)); err != nil {
+		t.Errorf("unexpected error(s): %s", err)
 		return
 	}
 
