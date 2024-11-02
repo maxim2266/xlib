@@ -66,3 +66,30 @@ func TestAsyncN(t *testing.T) {
 		return
 	}
 }
+
+func TestAsyncErrN(t *testing.T) {
+	counter := int32(0)
+
+	fn := func() error {
+		time.Sleep(20 * time.Millisecond)
+		atomic.AddInt32(&counter, 1)
+		return errors.New("X")
+	}
+
+	err := Await(Async(fn, fn, fn))
+
+	if err == nil {
+		t.Error("missing error")
+		return
+	}
+
+	if msg := err.Error(); msg != "X\nX\nX" {
+		t.Errorf("unexpected error message: %q", msg)
+		return
+	}
+
+	if counter != 3 {
+		t.Errorf("unexpected counter: %d", counter)
+		return
+	}
+}
