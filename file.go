@@ -4,6 +4,7 @@ package xlib
 import (
 	"bufio"
 	"errors"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -81,6 +82,11 @@ func WriteFile(pathname string, fn func(*bufio.Writer) error) (err error) {
 	// write and flush
 	if err = fn(file); err == nil {
 		err = file.Flush()
+	}
+
+	// wrap error
+	if err == io.ErrShortWrite {
+		err = errors.New("writing " + strconv.Quote(fd.Name()) + ": " + err.Error())
 	}
 
 	return
