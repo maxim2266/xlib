@@ -43,15 +43,28 @@ func WriteFile(pathname string, fn func(*bufio.Writer) error) (err error) {
 		return
 	}
 
-	temp := fd.Name()
-
-	// make sure the temporary is always deleted
+	// cleanup
 	defer func() {
+		temp := fd.Name()
+
+		// close and delete on panic
 		if p := recover(); p != nil {
+			fd.Close()
 			os.Remove(temp)
 			panic(p)
 		}
 
+		// close file
+		if e := fd.Close(); e != nil && err == nil {
+			err = e
+		}
+
+		// move file
+		if err == nil {
+			err = os.Rename(temp, pathname) // an atomic operation on most filesystems
+		}
+
+		// delete file on error
 		if err != nil {
 			os.Remove(temp)
 		}
@@ -61,22 +74,6 @@ func WriteFile(pathname string, fn func(*bufio.Writer) error) (err error) {
 	if err = fd.Chmod(perm); err != nil {
 		return
 	}
-
-	// write and move file
-	if err = writeFile(fd, fn); err == nil {
-		err = os.Rename(temp, pathname) // usually, an atomic operation
-	}
-
-	return
-}
-
-func writeFile(fd *os.File, fn func(*bufio.Writer) error) (err error) {
-	// make sure the file gets closed afterwards
-	defer func() {
-		if e := fd.Close(); e != nil && err == nil {
-			err = e
-		}
-	}()
 
 	// add buffer
 	file := bufio.NewWriter(fd)
