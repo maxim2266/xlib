@@ -33,8 +33,8 @@ func Async(tasks ...func() error) <-chan error {
 	return errch
 }
 
-// Await takes the error channel returned from Async() function, and waits for all the tasks
-// to complete, collecting errors via errors.Join().
+// Await takes the error channel returned from [Async] function, and waits for all the tasks
+// to complete, collecting errors via [errors.Join].
 func Await(errch <-chan error) error {
 	var errs []error
 

@@ -19,7 +19,7 @@ func TestStrJoin(t *testing.T) {
 	}
 
 	for i, c := range cases {
-		if r := StrJoin(", ", c.args...); r != c.res {
+		if r := JoinStrings(", ", c.args...); r != c.res {
 			t.Errorf("[%d] unexpected result: %q instead of %q", i, r, c.res)
 			return
 		}
