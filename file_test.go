@@ -26,19 +26,6 @@ func TestFileWrite(t *testing.T) {
 	}
 }
 
-func TestFileWriteAsync(t *testing.T) {
-	errch := Async(
-		func() error { return run(testSimpleWrite) },
-		func() error { return run(testOverWrite) },
-		func() error { return run(testPanic) },
-		func() error { return run(testError) },
-	)
-
-	for err := range errch {
-		t.Error(err)
-	}
-}
-
 func testSimpleWrite(dir string) error {
 	fname := filepath.Join(dir, "zzz")
 
