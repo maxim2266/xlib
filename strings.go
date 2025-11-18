@@ -3,7 +3,6 @@ package xlib
 import (
 	"io"
 	"strings"
-	"unicode/utf8"
 )
 
 // JoinStrings is similar to [strings.Join], but more comfortable to use in some scenarios.
@@ -17,14 +16,6 @@ func WriteString(w io.Writer, s string) (err error) {
 		_, err = io.WriteString(w, s)
 	}
 
-	return
-}
-
-// WriteRune writes the given rune to the given [io.Writer].
-func WriteRune(w io.Writer, r rune) (err error) {
-	var b [utf8.UTFMax]byte
-
-	_, err = w.Write(b[:utf8.EncodeRune(b[:], r)])
 	return
 }
 
