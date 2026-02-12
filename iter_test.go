@@ -37,7 +37,23 @@ func TestPipeIt(t *testing.T) {
 	res := slices.Collect(PipeIt(slices.Values(src)))
 
 	if !slices.Equal(res, src) {
-		t.Error("arrays don't match")
+		t.Error("(1) arrays don't match")
+		return
+	}
+
+	// early exit
+	res = res[:0]
+
+	for v := range PipeIt(slices.Values(src)) {
+		if v >= N/2 {
+			break
+		}
+
+		res = append(res, v)
+	}
+
+	if !slices.Equal(res, src[:N/2]) {
+		t.Error("(2) arrays don't match")
 		return
 	}
 }

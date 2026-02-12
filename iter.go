@@ -32,8 +32,18 @@ func PipeIt[T any](src iter.Seq[T]) iter.Seq[T] {
 	return func(yield func(T) bool) {
 		// channels
 		pipe, done := make(chan T, 10), make(chan struct{})
+		stopped := false
 
-		defer close(done)
+		defer func() {
+			close(done)
+
+			if stopped {
+				// drain the pipe
+				for _ = range pipe {
+					// do nothing
+				}
+			}
+		}()
 
 		// feeder
 		go func() {
@@ -59,7 +69,7 @@ func PipeIt[T any](src iter.Seq[T]) iter.Seq[T] {
 
 		// reader loop
 		for v := range pipe {
-			if !yield(v) {
+			if stopped = !yield(v); stopped {
 				break
 			}
 		}
