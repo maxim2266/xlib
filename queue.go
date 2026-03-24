@@ -1,16 +1,19 @@
 package xlib
 
+// Queue is an unbounded FIFO data container with [Push] and [Pop] operations.
 type Queue[T any] struct {
 	wi, ri int
 	buff   []T
 }
 
+// MakeQueue constructs a new queue of type T.
 func MakeQueue[T any]() *Queue[T] {
 	return &Queue[T]{
 		buff: make([]T, 16),
 	}
 }
 
+// Push adds an item to the queue.
 func (q *Queue[T]) Push(v T) {
 	q.buff[q.wi] = v
 
@@ -35,6 +38,8 @@ func (q *Queue[T]) Push(v T) {
 	}
 }
 
+// Pop removes an item from the queue, returning the item and a flag indicating that
+// the queue was not empty before the call.
 func (q *Queue[T]) Pop() (v T, ok bool) {
 	if ok = !q.IsEmpty(); ok {
 		v = q.buff[q.ri]
@@ -44,6 +49,7 @@ func (q *Queue[T]) Pop() (v T, ok bool) {
 	return
 }
 
+// IsEmpty returns true if the queue is empty.
 func (q *Queue[T]) IsEmpty() bool {
 	return q.wi == q.ri
 }
