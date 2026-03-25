@@ -8,8 +8,8 @@ type Queue[T any] struct {
 	buff   []T
 }
 
-// MakeQueue constructs a new queue of type T.
-func MakeQueue[T any](size int) *Queue[T] {
+// QueueOf constructs a new queue of type T and at least of the given size.
+func QueueOf[T any](size int) *Queue[T] {
 	switch {
 	case size > 1024*1024*1024:
 		panic("required queue size is too large")
@@ -22,6 +22,18 @@ func MakeQueue[T any](size int) *Queue[T] {
 	return &Queue[T]{
 		buff: make([]T, size),
 	}
+}
+
+// QueueFromSlice constructs a new queue initialised with the content of the given slice.
+func QueueFromSlice[S ~[]T, T any](src S) *Queue[T] {
+	q := QueueOf[T](len(src) + 1)
+
+	for i, v := range src {
+		q.buff[i] = v
+	}
+
+	q.wi = len(src)
+	return q
 }
 
 // Push adds an item to the queue.
@@ -40,8 +52,6 @@ func (q *Queue[T]) Push(v T) {
 		for i, j := (q.ri+1)&m, 1; i != q.wi; i, j = (i+1)&m, j+1 {
 			b[j] = q.buff[i]
 		}
-
-		clear(q.buff) // help gc
 
 		// new queue
 		*q = Queue[T]{

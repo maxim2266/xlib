@@ -1,14 +1,14 @@
 package xlib
 
 import (
-	"log"
+	"math/bits"
 	"testing"
 )
 
 func TestQueueSimple(t *testing.T) {
 	const N = 50
 
-	q := MakeQueue[int](0)
+	q := QueueOf[int](0)
 
 	for n := 1; n <= N; n++ {
 		for i := range n {
@@ -19,16 +19,48 @@ func TestQueueSimple(t *testing.T) {
 			x, ok := q.Pop()
 
 			if !ok {
-				log.Fatalf("(%d, %d) empty queue", i, n)
+				t.Fatalf("(%d, %d) empty queue", i, n)
 			}
 
 			if x != i {
-				log.Fatalf("(%d, %d) unexpected value %d", i, n, x)
+				t.Fatalf("(%d, %d) unexpected value %d", i, n, x)
 			}
 		}
 
 		if !q.IsEmpty() {
-			log.Fatalf("%d: non-empty queue", n)
+			t.Fatalf("%d: non-empty queue", n)
 		}
+	}
+}
+
+func TestQueueFromSlice(t *testing.T) {
+	const N = 32
+
+	src := make([]int, N)
+
+	for i := range len(src) {
+		src[i] = i
+	}
+
+	q := QueueFromSlice(src)
+
+	if len(q.buff) != 1<<bits.Len(N) {
+		t.Fatalf("unexpected queue size %d", len(q.buff))
+	}
+
+	for i := range len(src) {
+		x, ok := q.Pop()
+
+		if !ok {
+			t.Fatalf("(%d) empty queue", i)
+		}
+
+		if x != i {
+			t.Fatalf("(%d) unexpected value %d", i, x)
+		}
+	}
+
+	if !q.IsEmpty() {
+		t.Fatal("non-empty queue")
 	}
 }
