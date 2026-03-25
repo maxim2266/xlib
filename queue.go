@@ -42,7 +42,7 @@ func (q *Queue[T]) Push(v T) {
 // the queue was not empty before the call.
 func (q *Queue[T]) Pop() (v T, ok bool) {
 	if ok = !q.IsEmpty(); ok {
-		v = q.buff[q.ri]
+		v, q.buff[q.ri] = q.buff[q.ri], v
 		q.ri = (q.ri + 1) & q.mask()
 	}
 
