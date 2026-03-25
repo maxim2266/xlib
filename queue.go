@@ -1,5 +1,7 @@
 package xlib
 
+import "math/bits"
+
 // Queue is an unbounded FIFO data container with [Push] and [Pop] operations.
 type Queue[T any] struct {
 	wi, ri int
@@ -7,9 +9,18 @@ type Queue[T any] struct {
 }
 
 // MakeQueue constructs a new queue of type T.
-func MakeQueue[T any]() *Queue[T] {
+func MakeQueue[T any](size int) *Queue[T] {
+	switch {
+	case size > 1024*1024*1024:
+		panic("required queue size is too large")
+	case size < 16:
+		size = 16
+	default:
+		size = 1 << bits.Len(uint(size-1))
+	}
+
 	return &Queue[T]{
-		buff: make([]T, 16),
+		buff: make([]T, size),
 	}
 }
 
@@ -29,6 +40,8 @@ func (q *Queue[T]) Push(v T) {
 		for i, j := (q.ri+1)&m, 1; i != q.wi; i, j = (i+1)&m, j+1 {
 			b[j] = q.buff[i]
 		}
+
+		clear(q.buff) // help gc
 
 		// new queue
 		*q = Queue[T]{

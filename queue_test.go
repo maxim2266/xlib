@@ -8,7 +8,7 @@ import (
 func TestQueueSimple(t *testing.T) {
 	const N = 50
 
-	q := MakeQueue[int]()
+	q := MakeQueue[int](0)
 
 	for n := 1; n <= N; n++ {
 		for i := range n {
