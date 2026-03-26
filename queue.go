@@ -36,6 +36,11 @@ func QueueFromSlice[S ~[]T, T any](src S) *Queue[T] {
 	return q
 }
 
+// QueueFromSlice constructs a new queue initialised with the given arguments.
+func QueueFromArgs[T any](args ...T) *Queue[T] {
+	return QueueFromSlice(args)
+}
+
 // Push adds an item to the queue.
 func (q *Queue[T]) Push(v T) {
 	q.buff[q.wi] = v
@@ -75,6 +80,12 @@ func (q *Queue[T]) Pop() (v T, ok bool) {
 // IsEmpty returns true if the queue is empty.
 func (q *Queue[T]) IsEmpty() bool {
 	return q.wi == q.ri
+}
+
+// All is an iterator over the queue.
+func (q *Queue[T]) All(yield func(T) bool) {
+	for v, ok := q.Pop(); ok && yield(v); v, ok = q.Pop() {
+	}
 }
 
 func (q *Queue[T]) mask() int {
