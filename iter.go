@@ -39,7 +39,7 @@ func PipeIt[T any](src iter.Seq[T]) iter.Seq[T] {
 
 			if stopped {
 				// drain the pipe
-				for _ = range pipe {
+				for range pipe {
 					// do nothing
 				}
 			}
@@ -47,24 +47,19 @@ func PipeIt[T any](src iter.Seq[T]) iter.Seq[T] {
 
 		// feeder
 		go func() {
-			defer func() {
-				// we don't want to close the channel on panic, because
-				// that would allow the reader loop to exit while the panic
-				// is still in progress
-				if p := recover(); p != nil {
-					panic(p)
-				}
-
-				close(pipe)
-			}()
-
+		loop:
 			for v := range src {
 				select {
 				case pipe <- v:
 				case <-done:
-					return
+					break loop
 				}
 			}
+
+			// we don't want to close the channel on panic, because
+			// that would allow the reader loop to exit while the panic
+			// is still in progress
+			close(pipe)
 		}()
 
 		// reader loop
