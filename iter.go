@@ -30,6 +30,18 @@ func FilterIt[T any](src iter.Seq[T], pred func(T) bool) iter.Seq[T] {
 	}
 }
 
+// TakeWhileIt creates a new iterator that yields values while the given
+// predicate returns true.
+func TakeWhileIt[T any](src iter.Seq[T], pred func(T) bool) iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for v := range src {
+			if !pred(v) || !yield(v) {
+				break
+			}
+		}
+	}
+}
+
 // PipeIt creates a new iterator that runs the original iterator in
 // a dedicated goroutine.
 func PipeIt[T any](src iter.Seq[T]) iter.Seq[T] {
