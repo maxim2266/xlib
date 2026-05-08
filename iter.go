@@ -52,10 +52,8 @@ func PipeIt[T any](src iter.Seq[T]) iter.Seq[T] {
 // a dedicated goroutine, with lifetime-controlling context.
 func PipeItCtx[T any](ctx context.Context, src iter.Seq[T]) iter.Seq[T] {
 	return func(yield func(T) bool) {
+		// context
 		ctx, cancel := context.WithCancel(ctx)
-
-		// channel
-		pipe := make(chan T, 10)
 
 		// waiter
 		var wg sync.WaitGroup
@@ -64,6 +62,9 @@ func PipeItCtx[T any](ctx context.Context, src iter.Seq[T]) iter.Seq[T] {
 			cancel()
 			wg.Wait()
 		}()
+
+		// channel
+		pipe := make(chan T, 10)
 
 		// feeder
 		wg.Go(func() {
